@@ -86,7 +86,7 @@
 #include <stdlib.h>
 #include <string.h> //memset()
 #include <math.h>
-
+#include "OLED_Driver.h"
 PAINT Paint;
 
 /******************************************************************************
@@ -264,9 +264,7 @@ void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
         Rdata = Rdata & (~(0xf0 >> ((X % 2)*4)));
         Paint.Image[Addr] = Rdata | ((Color << 4) >> ((X % 2)*4));
     }else if(Paint.Scale == 65) {
-        UDOUBLE Addr = X*2 + Y*Paint.WidthByte;
-        Paint.Image[Addr] = 0xff & (Color>>8);
-        Paint.Image[Addr+1] = 0xff & Color;
+        OLED_1in5_rgb_Set_Point(X, Y, Color);
     }
 }
 
@@ -295,9 +293,7 @@ void Paint_Clear(UWORD Color)
     }else if(Paint.Scale == 65) {
         for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
             for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
-                UDOUBLE Addr = X*2 + Y*Paint.WidthByte;
-                Paint.Image[Addr] = 0x0f & (Color>>8);
-                Paint.Image[Addr+1] = 0x0f & Color;
+                OLED_1in5_rgb_Set_Point(X, Y, Color);
             }
         }
     }
@@ -707,7 +703,7 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint,const char * Number,
     uint8_t Str_Array[ARRAY_LEN] = {0};
     uint8_t *pStr = Str_Array;
     uint8_t i, len = 0;
-    int16_t arr[3] = {0, 0, 0};
+    int16_t arr[2] = {0, -1};
     int16_t *p = arr;
     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
         Debug("Paint_DisNum Input exceeds the normal display range\r\n");
@@ -717,23 +713,17 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint,const char * Number,
     while(Number[len] != '\0') {  
       len++;                                    //get total length
       (*p)++;                                   //get the integer part length 
-      if(Number[len] == '.') {
-        arr[2] = 1;
-        arr[0]--;
-        p++;               //get fractional part length
-      }
+      if(Number[len] == '.') p++;               //get fractional part length
     }
 
     if(Digit > 0) {    
       if(Digit <= arr[1]) {                     
-        for(i=0; i<=len-(arr[1]-Digit); i++)      //cut some Number
+        for(i=0; i<len-(arr[1]-Digit); i++)      //cut some Number
           Str_Array[i] = Number[i];
       }
       else {
-        for(i=0; i<=len+Digit-arr[1]; i++) {
-          if(i == len && arr[2] == 0)
-            Str_Array[i] = '.';
-          else if(i >= len)                           //add '0'
+        for(i=0; i<len+(Digit-arr[1]); i++) {
+          if(i >= len)                           //add '0'
             Str_Array[i] = '0';
           else
             Str_Array[i] = Number[i];
@@ -741,7 +731,7 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint,const char * Number,
       }
     }
     else
-      for(i=0; i<=len-arr[1]-arr[2]; i++) {
+      for(i=0; i<len; i++) {
         Str_Array[i] = Number[i];
         }
   

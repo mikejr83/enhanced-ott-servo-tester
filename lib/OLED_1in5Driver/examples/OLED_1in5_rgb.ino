@@ -1,21 +1,14 @@
-#include "settings.h"
-
 #include "OLED_Driver.h"
 #include "GUI_paint.h"
+#include "DEV_Config.h"
 #include "Debug.h"
 #include "ImageData.h"
-#include <SPI.h>
 
-// put function declarations here:
-void InitializeOLEDSystem(void);
-
-void setup()
-{
-  InitializeOLEDSystem();
-
+void setup() {
+  System_Init();
   if(USE_IIC) {
     Serial.print("Only USE_SPI_4W, Please revise DEV_config.h !!!");
-    return;
+    return 0;
   }
   
   Serial.print(F("OLED_Init()...\r\n"));
@@ -59,6 +52,8 @@ void setup()
     Serial.print("Drawing:page 3\r\n");     
     Paint_DrawString_EN(10, 0, "waveshare", &Font16, BLACK, BLUE);
     Paint_DrawNum(10, 30, "123.4567", &Font12, 2, RED, BLACK); 
+    Paint_DrawString_CN(10, 50,"你好Ab", &Font12CN, BLACK, BROWN);
+    Paint_DrawString_CN(0, 80,"微雪电子", &Font24CN, BLACK, BRED);
     Driver_Delay_ms(2000);    
     OLED_1in5_rgb_Clear();   
     
@@ -69,45 +64,6 @@ void setup()
   }   
 }
 
-void loop()
-{
-  // put your main code here, to run repeatedly:
-}
+void loop() {
 
-
-/********************************************************************************
-  function: System Init and exit
-  note:
-  Initialize the communication method
-********************************************************************************/
-void InitializeOLEDSystem(void)
-{
-  //set pin
-  // pinMode(OLED_CS, OUTPUT);
-  // pinMode(OLED_RST, OUTPUT);
-  // pinMode(OLED_DC, OUTPUT);
-
-  //set Serial
-  Serial.begin(115200);
-
-  // stdio_init_all();  
-
-#if USE_SPI_4W
-  Serial.println("USE_SPI");
-  
-  //set OLED SPI
-  // SPI.
-  // SPI.setDataMode(SPI_MODE3);
-  // SPI.setBitOrder(MSBFIRST);
-  // SPI.setClockDivider(SPI_CLOCK_DIV2);
-  SPI.begin();
-
-#elif USE_IIC
-  //set OLED I2C
-  Serial.println("USE_I2C");
-  OLED_DC_0;//DC = 1 => Address = 0x3d
-  OLED_CS_0;
-  Wire.setClock(1000000);
-  Wire.begin();
-#endif
 }

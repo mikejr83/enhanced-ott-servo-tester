@@ -1,11 +1,11 @@
 /*****************************************************************************
 * | File      	:   OLED_Driver.h
 * | Author      :   Waveshare team
-* | Function    :   1.5inch OLED Module Drive function
+* | Function    :   1.5inch RGB OLED Module Drive function
 * | Info        :
 *----------------
 * |	This version:   V2.0
-* | Date        :   2020-08-19
+* | Date        :   2020-08-20
 * | Info        :
 * -----------------------------------------------------------------------------
 #
@@ -38,17 +38,20 @@ function:
 		Define the full screen height length of the display
 ********************************************************************************/
 
-#define OLED_1in5_WIDTH  128//OLED width
-#define OLED_1in5_HEIGHT 128 //OLED height
+#define OLED_1in5_RGB_WIDTH  128//OLED width
+#define OLED_1in5_RGB_HEIGHT 128 //OLED height
 
 void SPI4W_Write_Byte(uint8_t DATA);
 void I2C_Write_Byte(uint8_t value, uint8_t Cmd);
+
 void Driver_Delay_ms(unsigned long xms);
 void Driver_Delay_us(int xus);
 
-void OLED_1in5_Init(void);
-void OLED_1in5_Clear(void);
-void OLED_1in5_Display(const UBYTE *Image);
-void OLED_1in5_Display_Part(const UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend);
+void OLED_1in5_rgb_Init(void);
+void OLED_1in5_rgb_Clear(void);
+void OLED_1in5_rgb_Set_Point(UBYTE Xpoint, UBYTE Ypoint, UWORD Color);
+void OLED_1in5_rgb_Display(const UBYTE *Image);
+void OLED_1in5_rgb_Display_Part(const UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend);
+
 #endif  
 	 
