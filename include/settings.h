@@ -14,4 +14,4 @@
 //GPIO config
 #define OLED_CS  17
 #define OLED_RST 15
-#define OLED_DC  16
+#define OLED_DC  19

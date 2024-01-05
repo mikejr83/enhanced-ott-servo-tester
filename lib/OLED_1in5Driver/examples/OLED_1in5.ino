@@ -1,29 +1,22 @@
-#include "settings.h"
-
 #include "OLED_Driver.h"
 #include "GUI_paint.h"
+#include "DEV_Config.h"
+#include "Debug.h"
 #include "ImageData.h"
 
-// put function declarations here:
-uint8_t InitializeOLEDSystem(void);
-
-void setup()
-{
-  if (!InitializeOLEDSystem())
-  {
-    asm("");
-  }
-
+void setup() {
+  System_Init();
+  Serial.print(F("OLED_Init()...\r\n"));
   OLED_1in5_Init();
   Driver_Delay_ms(500); 
   OLED_1in5_Clear();  
-
-    //0.Create a new image cache
+  
+  //0.Create a new image cache
   UBYTE *BlackImage;
   UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
   if((BlackImage = (UBYTE *)malloc(Imagesize/8)) == NULL) { //No enough memory
       Serial.print("Failed to apply for black memory...\r\n");
-      return;
+      return -1;
   }
   Serial.print("Paint_NewImage\r\n");
   Paint_NewImage(BlackImage, OLED_1in5_WIDTH/4, OLED_1in5_HEIGHT/2, 270, BLACK);  
@@ -79,6 +72,7 @@ void setup()
     OLED_1in5_Display_Part(BlackImage, 0, 64, 32, 128); 
     Driver_Delay_ms(2000);  
     Paint_Clear(BLACK);   
+    Paint_DrawString_CN(0, 0,"你好Ab", &Font12CN, WHITE, WHITE);
     OLED_1in5_Display_Part(BlackImage, 32, 0, 64, 64);
     Driver_Delay_ms(2000);    
     Paint_Clear(BLACK);   
@@ -93,45 +87,6 @@ void setup()
   }   
 }
 
-void loop()
-{
-  // put your main code here, to run repeatedly:
-}
+void loop() {
 
-
-/********************************************************************************
-  function: System Init and exit
-  note:
-  Initialize the communication method
-********************************************************************************/
-uint8_t InitializeOLEDSystem(void)
-{
-  //set pin
-  pinMode(OLED_CS, OUTPUT);
-  pinMode(OLED_RST, OUTPUT);
-  pinMode(OLED_DC, OUTPUT);
-
-  //set Serial
-  Serial.begin(115200);
-
-  // stdio_init_all();  
-
-#if USE_SPI_4W
-  Serial.println("USE_SPI");
-  //set OLED SPI
-  // SPI.
-  // SPI.setDataMode(SPI_MODE3);
-  // SPI.setBitOrder(MSBFIRST);
-  // SPI.setClockDivider(SPI_CLOCK_DIV2);
-  SPI.begin();
-
-#elif USE_IIC
-  //set OLED I2C
-  Serial.println("USE_I2C");
-  OLED_DC_0;//DC = 1 => Address = 0x3d
-  OLED_CS_0;
-  Wire.setClock(1000000);
-  Wire.begin();
-#endif
-  return 0;
 }
