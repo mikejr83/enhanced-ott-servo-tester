@@ -1,24 +1,29 @@
 #include "settings.h"
 
-#include "OLED_Driver.h"
+#include "OLED1in5_RGB_Driver.h"
 #include "GUI_paint.h"
 #include "ImageData.h"
+#include "Utilities.h"
+#include <SPI.h>
 
-// put function declarations here:
-uint8_t InitializeOLEDSystem(void);
+OLED1in5_RGB_Driver *oledDriver;
+OLEDPainter *painter;
 
 void setup()
 {
-  if (!InitializeOLEDSystem())
-  {
-    asm("");
-  }
+  //set Serial
+  Serial.begin(115200);
+  SPI.begin();
 
-  OLED_1in5_Init();
+  oledDriver = new OLED1in5_RGB_Driver(OLED_RST, OLED_CS, OLED_DC);
+  painter = new OLEDPainter(*oledDriver);
+  
+  Serial.print(F("OLED_Init()...\r\n"));
+  oledDriver->Init();
   Driver_Delay_ms(500); 
-  OLED_1in5_Clear();  
-
-    //0.Create a new image cache
+  oledDriver->Clear();  
+  
+  //1.Create a new image size
   UBYTE *BlackImage;
   UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
   if((BlackImage = (UBYTE *)malloc(Imagesize/8)) == NULL) { //No enough memory
@@ -26,112 +31,48 @@ void setup()
       return;
   }
   Serial.print("Paint_NewImage\r\n");
-  Paint_NewImage(BlackImage, OLED_1in5_WIDTH/4, OLED_1in5_HEIGHT/2, 270, BLACK);  
-  Paint_SetScale(16);
-
-  //1.Select Image
-  Paint_SelectImage(BlackImage);
-  Paint_Clear(BLACK);
-  Driver_Delay_ms(500); 
-
-  while(1) {
-    
-    // 2.Drawing on the image   
-    Serial.print("Drawing:page 1\r\n");
-    Paint_DrawPoint(10, 10, WHITE, DOT_PIXEL_1X1, DOT_STYLE_DFT);
-    Paint_DrawPoint(25, 10, WHITE, DOT_PIXEL_2X2, DOT_STYLE_DFT);
-    Paint_DrawPoint(40, 10, WHITE, DOT_PIXEL_3X3, DOT_STYLE_DFT);
-    OLED_1in5_Display_Part(BlackImage, 0, 0, 32, 64);   
-    Paint_Clear(BLACK);
-    Paint_DrawLine(10, 10, 10, 25, WHITE, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-    Paint_DrawLine(20, 10, 20, 25, WHITE, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-    Paint_DrawLine(30, 10, 30, 25, WHITE, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-    Paint_DrawLine(40, 10, 40, 25, WHITE, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-    OLED_1in5_Display_Part(BlackImage, 32, 64, 64, 128); 
-    Paint_Clear(BLACK);
-    Paint_DrawCircle(30, 16, 14, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-    Paint_DrawRectangle(22, 8, 38, 24, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-    OLED_1in5_Display_Part(BlackImage, 32, 0, 64, 64); 
-    Paint_Clear(BLACK);      
-    Paint_DrawCircle(30, 16, 14, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-    Paint_DrawRectangle(22, 8, 38, 24, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-    OLED_1in5_Display_Part(BlackImage, 0, 64, 32, 128);    
-    Driver_Delay_ms(2000);      
-    Paint_Clear(BLACK);
-    
-    // Drawing on the image
-    Serial.print("Drawing:page 2\r\n");
-    for(UBYTE i=0; i<16; i++){
-      Paint_DrawRectangle(0, 8*(i%4)+1, 63, 8*(i%4+1), i, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-      if(i%4==3) {
-        OLED_1in5_Display_Part(BlackImage, 32*(i/4), 0, 32*(i/4+1), 64); 
-        Paint_Clear(BLACK); 
-      }
-    }     
-    Driver_Delay_ms(2000);  
-    
-    // Drawing on the image
-    Serial.print("Drawing:page 3\r\n");     
-    Paint_DrawString_EN(10, 0, "waveshare", &Font16, WHITE, WHITE);
-    OLED_1in5_Display_Part(BlackImage, 0, 0, 32, 64); 
-    Paint_Clear(BLACK);
-    Paint_DrawNum(0, 10, "123.456", &Font12, 2, WHITE, WHITE);
-    OLED_1in5_Display_Part(BlackImage, 0, 64, 32, 128); 
-    Driver_Delay_ms(2000);  
-    Paint_Clear(BLACK);   
-    OLED_1in5_Display_Part(BlackImage, 32, 0, 64, 64);
-    Driver_Delay_ms(2000);    
-    Paint_Clear(BLACK);   
-    
-    // show the array image
-    Serial.print("Drawing:page 4\r\n");
-    OLED_1in5_Display(gImage_1in5);
-    Driver_Delay_ms(2000);    
-    Paint_Clear(BLACK); 
-
-    OLED_1in5_Clear();  
-  }   
+  painter->NewImage(BlackImage, OLED_1in5_RGB_WIDTH, OLED_1in5_RGB_HEIGHT, 270, BLACK);  
+  painter->SetScale(65);
 }
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
-}
-
-
-/********************************************************************************
-  function: System Init and exit
-  note:
-  Initialize the communication method
-********************************************************************************/
-uint8_t InitializeOLEDSystem(void)
-{
-  //set pin
-  pinMode(OLED_CS, OUTPUT);
-  pinMode(OLED_RST, OUTPUT);
-  pinMode(OLED_DC, OUTPUT);
-
-  //set Serial
-  Serial.begin(115200);
-
-  // stdio_init_all();  
-
-#if USE_SPI_4W
-  Serial.println("USE_SPI");
-  //set OLED SPI
-  // SPI.
-  // SPI.setDataMode(SPI_MODE3);
-  // SPI.setBitOrder(MSBFIRST);
-  // SPI.setClockDivider(SPI_CLOCK_DIV2);
-  SPI.begin();
-
-#elif USE_IIC
-  //set OLED I2C
-  Serial.println("USE_I2C");
-  OLED_DC_0;//DC = 1 => Address = 0x3d
-  OLED_CS_0;
-  Wire.setClock(1000000);
-  Wire.begin();
-#endif
-  return 0;
+  // 2.Write directly to memory through the GUI 
+    Serial.print("Drawing:page 1\r\n");
+    painter->DrawPoint(20, 20, BLUE, DOT_PIXEL_1X1, DOT_STYLE_DFT);
+    painter->DrawPoint(40, 20, BRED, DOT_PIXEL_2X2, DOT_STYLE_DFT);
+    painter->DrawPoint(60, 20, GRED, DOT_PIXEL_3X3, DOT_STYLE_DFT);
+    
+    painter->DrawLine(10, 10, 10, 25, GBLUE, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+    painter->DrawLine(30, 10, 30, 25, RED, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+    painter->DrawLine(50, 10, 50, 25, MAGENTA, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
+    painter->DrawLine(70, 10, 70, 25, GREEN, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
+    
+    painter->DrawCircle(30, 90, 20, CYAN, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+    painter->DrawRectangle(15, 75, 45, 105, BROWN, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);   
+    painter->DrawCircle(80, 80, 25, BROWN, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+    painter->DrawRectangle(65, 65, 95, 95, CYAN, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+    Driver_Delay_ms(2000);      
+    oledDriver->Clear(); 
+    
+    // Drawing on the image
+    Serial.print("Drawing:page 2\r\n");
+    for(UBYTE i=0; i<16; i++){
+      painter->DrawRectangle(0, i*8, 127, (i+1)*8, i*4095, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+    }     
+    Driver_Delay_ms(2000);
+    oledDriver->Clear();  
+    
+    // Drawing on the image
+    Serial.print("Drawing:page 3\r\n");     
+    painter->DrawString_EN(10, 0, "waveshare", &Font16, BLACK, BLUE);
+    painter->DrawNum(10, 30, "123.4567", &Font12, 2, RED, BLACK); 
+    Driver_Delay_ms(2000);    
+    oledDriver->Clear();   
+    
+    // show the array image
+    Serial.print("Drawing:page 4\r\n");
+    oledDriver->Display_Part(gImage_1in5_rgb, 0, 0, 60, 60);
+    Driver_Delay_ms(2000);    
+    oledDriver->Clear();  
 }
