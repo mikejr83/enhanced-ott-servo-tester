@@ -2,7 +2,8 @@
 
 #include "OLED1in5_RGB_Driver.h"
 #include "GUI_paint.h"
-#include "ImageData.h"
+#include "Debug.h"
+#include "SplashImageData.h"
 #include "Utilities.h"
 #include <SPI.h>
 
@@ -20,7 +21,7 @@ void setup()
   
   Serial.print(F("OLED_Init()...\r\n"));
   oledDriver->Init();
-  Driver_Delay_ms(500); 
+  delay(250); 
   oledDriver->Clear();  
   
   //1.Create a new image size
@@ -33,6 +34,9 @@ void setup()
   Serial.print("Paint_NewImage\r\n");
   painter->NewImage(BlackImage, OLED_1in5_RGB_WIDTH, OLED_1in5_RGB_HEIGHT, 270, BLACK);  
   painter->SetScale(65);
+
+  oledDriver->Display_Part(splashImageData, 0, 0, 128, 128);
+  delay(5000);
 }
 
 void loop()
@@ -72,7 +76,7 @@ void loop()
     
     // show the array image
     Serial.print("Drawing:page 4\r\n");
-    oledDriver->Display_Part(gImage_1in5_rgb, 0, 0, 60, 60);
+    oledDriver->Display_Part(splashImageData, 0, 0, 128, 128);
     Driver_Delay_ms(2000);    
     oledDriver->Clear();  
 }
