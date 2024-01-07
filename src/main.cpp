@@ -26,7 +26,7 @@ void setup()
   
   //1.Create a new image size
   UBYTE *BlackImage;
-  UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+  UWORD Imagesize = ((OLED_1in5_RGB_WIDTH%2==0)? (OLED_1in5_RGB_WIDTH/2): (OLED_1in5_RGB_WIDTH/2+1)) * OLED_1in5_RGB_HEIGHT;
   if((BlackImage = (UBYTE *)malloc(Imagesize/8)) == NULL) { //No enough memory
       Serial.print("Failed to apply for black memory...\r\n");
       return;
