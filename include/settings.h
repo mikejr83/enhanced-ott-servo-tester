@@ -1,17 +1,26 @@
 #pragma once
 
-#define USE_SPI_4W  1
-#define USE_IIC     0
+// OLED pins
+#define SCLK_PIN 18
+#define MOSI_PIN 19
+#define DC_PIN 20
+#define CS_PIN 22
+#define RST_PIN 21
 
-#define IIC_CMD        0X00
-#define IIC_RAM        0X40
+// Screen dimensions
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 128 
 
-#define SPI_PORT spi0
+// Key inputs pins
+#define BUTTON_ONE 21
+#define BUTTON_TWO 20
 
-/****************************************************************************************
-    //Use the  library function definition
-*****************************************************************************************/
-//GPIO config
-#define OLED_CS  17
-#define OLED_RST 15
-#define OLED_DC  16
+// Color definitions
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define RED 0xF800
+#define GREEN 0x07E0
+#define CYAN 0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW 0xFFE0
+#define WHITE 0xFFFF

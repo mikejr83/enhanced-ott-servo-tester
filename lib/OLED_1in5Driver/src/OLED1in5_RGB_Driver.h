@@ -1,12 +1,13 @@
 /*****************************************************************************
-* | File      	:   ImageData.h
+* | File      	:   OLED_Driver.h
 * | Author      :   Waveshare team
-* | Function    :	
-*----------------
-* |	This version:   V1.0
-* | Date        :   2020-08-19
+* | Function    :   1.5inch RGB OLED Module Drive function
 * | Info        :
-*
+*----------------
+* |	This version:   V2.0
+* | Date        :   2020-08-20
+* | Info        :
+* -----------------------------------------------------------------------------
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documnetation files (the "Software"), to deal
@@ -26,14 +27,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 ******************************************************************************/
+#pragma once
 
-#ifndef _IMAGEDATA_H_
-#define _IMAGEDATA_H_
+#include "Config.h"
+/********************************************************************************
+function:
+		Define the full screen height length of the display
+********************************************************************************/
 
-extern const unsigned char gImage_1in5_rgb[];	//rotate 90, MSB first
+class OLED1in5_RGB_Driver
+{
+	private:
+	void Reset(void);
+	void WriteReg(uint8_t Reg);
+	void WriteData(uint8_t Data);
+	void InitReg(void);
+protected:
+	int rstPin;
+	int csPin;
+	int dcPin;
 
+public:
+	OLED1in5_RGB_Driver(int rstPin, int csPin, int dcPin);
 
-#endif
-/* FILE END */
+	void Init(void);
+	void Clear(void);
+	void Set_Point(UBYTE Xpoint, UBYTE Ypoint, UWORD Color);
+	void Display(const UBYTE *Image);
+	void Display_Part(const UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend);
+};
