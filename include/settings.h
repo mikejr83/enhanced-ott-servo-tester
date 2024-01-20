@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ArduinoLog.h>
+
 // OLED pins
 #define SCLK_PIN 18
 #define MOSI_PIN 19
@@ -12,8 +14,10 @@
 #define SCREEN_HEIGHT 128 
 
 // Key inputs pins
-#define BUTTON_ONE 21
-#define BUTTON_TWO 20
+#define BUTTON_PIN 0
+
+#define X_AXIS_PIN 26
+#define Y_AXIS_PIN 27
 
 // Color definitions
 #define BLACK 0x0000
@@ -24,3 +28,8 @@
 #define MAGENTA 0xF81F
 #define YELLOW 0xFFE0
 #define WHITE 0xFFFF
+
+#define LOG_LEVEL LOG_LEVEL_TRACE
+// #define LOG_LEVEL LOG_LEVEL_NOTICE
+// #define LOG_LEVEL LOG_LEVEL_INFO
+// #define DISABLE_LOGGING 
