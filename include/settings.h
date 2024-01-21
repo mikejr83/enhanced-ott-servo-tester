@@ -16,7 +16,7 @@
 // Key inputs pins
 #define BUTTON_PIN 2
 
-#define X_AXIS_PIN A2
+#define X_AXIS_PIN A0
 #define Y_AXIS_PIN A1
 
 // Color definitions
@@ -30,7 +30,33 @@
 #define YELLOW 0xFFE0
 #define WHITE 0xFFFF
 
-// #define LOG_LEVEL LOG_LEVEL_TRACE
-// #define LOG_LEVEL LOG_LEVEL_NOTICE
-// #define LOG_LEVEL LOG_LEVEL_INFO
-// #define DISABLE_LOGGING 
+// UI Defaults
+#define MAX_SPLASH_DISPLAYTIME 5000
+#define SHOW_SPLASH  true
+
+#define NUM_PROFILE 3
+
+#define SWP_LINEAR 0;   // index 0
+#define SWP_SINE   1;   // index 1
+#define SWP_SQUARE 2;   // index 2
+
+// Servo Hardware
+#define MAX_SERVO 7
+
+#define SERVO_UPDATE_FREQ       50       // standard servo update frequency in Hz
+#define SERVO_LOWER_HARDLIMIT  500       // servo abs lower hard limit
+#define SERVO_UPPER_HARDLIMIT 2500       // servo abs upper hard limit
+
+#define DEBUG   1  // enable debugging output
+
+#if DEBUG
+#define PRINT(s, n)  do { Serial.print(F(s)); Serial.println(n); } while (false);
+#define PRINTS(s)    do { Serial.print(F(s)); } while (false);
+#define PRINTSLN(s)  do { Serial.println(F(s)); } while (false);
+#define PRINTX(s, x) do { Serial.print(F(s)); Serial.print(F("x")); Serial.println(x, HEX); }  while (false);
+#else
+#define PRINT(s, n)
+#define PRINTS(s)
+#define PRINTSLN(s)
+#define PRINTX(s, x)
+#endif // DEBUG
