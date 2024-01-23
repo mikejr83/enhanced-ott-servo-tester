@@ -6,6 +6,8 @@
 #include "RunMode.h"
 #include "ServoOps.h"
 
+void handleManual(AppConfig &appConfig, ServoData *servoData);
+
 void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode)
 {
     // now check if we need to process anything else
@@ -19,7 +21,7 @@ void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode)
         break;
 
     case RUN_MANUAL:
-        // encoderMenuUI();
+        handleManual(appConfig, servoData);
         break;
 
     // SWEEP mode ---------------------------------
@@ -94,4 +96,40 @@ void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode)
         runMode = RUN_MANUAL_INIT;
         break;
     }
+}
+
+const char *RunModeToString(RunMode runMode)
+{
+    switch (runMode)
+    {
+    // MANUAL mode --------------------------------
+    case RUN_MANUAL_INIT:
+    case RUN_MANUAL:
+        return "Manual";
+
+    // SWEEP mode ---------------------------------
+    case RUN_SWEEP_INIT:
+    case RUN_SWEEP_WAITING:
+    case RUN_SWEEP:
+        return "Sweep";
+
+    // RECEIVER CHECK mode ----------------------
+    case RUN_RCHECK_INIT:
+    case RUN_RCHECK:
+    case RUN_RCHECK_PAUSE:
+        return "RX";
+
+    // ESC mode ---------------------------------
+    case RUN_ESC_INIT:
+    case RUN_ESC:
+        return "ESC";
+
+    default:
+        return "Manual";
+    }
+}
+
+void handleManual(AppConfig &appConfig, ServoData *servoData)
+{
+
 }

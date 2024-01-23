@@ -19,3 +19,5 @@ enum RunMode : uint8_t
 };
 
 void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode);
+
+const char* RunModeToString(RunMode runMode);
