@@ -17,12 +17,9 @@
 #include <EasyButton.h>
 
 #include "AppConfig.h"
-#ifndef SUPPRESS_SPLASH
-#include "SplashImageData.h"
-#endif
+#include "DisplayOps.h"
 #include "RunMode.h"
 #include "ServoOps.h"
-#include "TextPrinter.h"
 #include "OTTMenu.h"
 
 // Button presses
@@ -314,18 +311,7 @@ void setup(void)
   oled.fillRect(0, 0, 128, 128, BLACK);
   delay(250);
 
-  if (appConfig.data.showSplash && appConfig.data.splashDisplayTime <= MAX_SPLASH_DISPLAYTIME)
-  {
-    PRINT("\nShowing splash screen and title for a total time of: ", appConfig.data.splashDisplayTime)
-#ifndef SUPPRESS_SPLASH
-    oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
-    delay(appConfig.data.splashDisplayTime / 2);
-    oled.fillScreen(BLACK);
-#endif
-    pintTitleScreen(oled);
-    delay(appConfig.data.splashDisplayTime / 2);
-    oled.fillScreen(BLACK);
-  }
+  PrintSplashScreen(appConfig, oled);
 }
 
 void loop()
@@ -339,7 +325,7 @@ void loop()
   else
   {
 #ifndef SUPPRESS_SPLASH
-    oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
+    // oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
 #endif
     // HandleRunMode(appConfig, servoData, runMode);
   }
@@ -350,6 +336,7 @@ void loop()
 void handleLongPress()
 {
   PRINTSLN("Long Press - Starting Menu...");
+  oled.setTextSize(1);
   nav.idleOff();
   showMenu = true;
 }
