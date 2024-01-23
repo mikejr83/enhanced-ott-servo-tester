@@ -1,6 +1,8 @@
 #include "AppConfig.h"
 
+#ifdef USE_EEPROM
 #include <EEPROM.h>
+#endif
 
 void AppConfig::save(void)
 {
@@ -35,7 +37,9 @@ void AppConfig::save(void)
         PRINTSLN("----------");
     }
 
+    #ifdef USE_EEPROM
     EEPROM.put(_eepromBase, data);
 
     PRINTSLN("Configuration saved!");
+    #endif
 }
