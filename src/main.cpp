@@ -42,7 +42,7 @@ AppConfig appConfig(0);
 Servo servo[MAX_SERVO];
 ServoData servoData[MAX_SERVO];
 
-const uint8_t SERVO_PIN[MAX_SERVO] = {2, 3, 4, 5, 6, 7};
+const uint8_t SERVO_PIN[MAX_SERVO] = {3, 4, 5, 6, 28, 29};
 RunMode runMode = RUN_MANUAL_INIT;
 uint32_t lastCheck = 0;
 
@@ -341,7 +341,7 @@ void loop()
 #ifndef SUPPRESS_SPLASH
     oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
 #endif
-    HandleRunMode(appConfig, servoData, runMode);
+    // HandleRunMode(appConfig, servoData, runMode);
   }
 
   button.read();
