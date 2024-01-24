@@ -17,7 +17,7 @@
 #include <EasyButton.h>
 
 #include "AppConfig.h"
-#include "DisplayOps.h"
+#include "Display.h"
 #include "RunMode.h"
 #include "ServoOps.h"
 #include "OTTMenu.h"
@@ -38,6 +38,8 @@ EasyButton button(BUTTON_PIN);
 AppConfig appConfig(0);
 Servo servo[MAX_SERVO];
 ServoData servoData[MAX_SERVO];
+
+Display *display;
 
 const uint8_t SERVO_PIN[MAX_SERVO] = {3, 4, 5, 6, 28, 29};
 RunMode runMode = RUN_MANUAL_INIT;
@@ -311,7 +313,9 @@ void setup(void)
   oled.fillRect(0, 0, 128, 128, BLACK);
   delay(250);
 
-  PrintSplashScreen(appConfig, oled);
+  display = new Display(oled, appConfig, servoData);
+
+  display->PrintSplashScreen();
 }
 
 void loop()
@@ -332,7 +336,7 @@ void loop()
     if (millis() - lastCheck > 50)
     {
       lastCheck = millis();
-      PrintMode(oled, appConfig, runMode, servoData);
+      display->PrintMode(runMode);
     }
   }
 
