@@ -19,4 +19,4 @@ void SetServoSPPct(AppConfig &appConfig, ServoData *servoData, uint8_t servoInde
 
 void SetAllServoHome(AppConfig &appConfig, ServoData *servoData);
 
-void DoServoSweep(AppConfig &appConfig, ServoData *servoData, uint8_t s, bool restart = false);
+void DoServoSweep(AppConfig &appConfig, ServoData *servoData, uint8_t s, bool restart);
