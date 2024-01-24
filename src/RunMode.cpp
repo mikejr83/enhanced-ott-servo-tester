@@ -8,7 +8,7 @@
 
 void handleManual(AppConfig &appConfig, ServoData *servoData);
 
-void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode)
+void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode &runMode)
 {
     // now check if we need to process anything else
     // based on the current run mode
@@ -36,13 +36,14 @@ void HandleRunMode(AppConfig &appConfig, ServoData *servoData, RunMode runMode)
 
     case RUN_SWEEP_WAITING:
         // encoderMenuUI();
+        runMode = RUN_SWEEP;
         break;
 
     case RUN_SWEEP:
         // PRINTS("\nSWEEP RUN");
         for (uint8_t i = 0; i < MAX_SERVO; i++)
             if (appConfig.data.servo[i].enabled)
-                DoServoSweep(appConfig, servoData, i, true);
+                DoServoSweep(appConfig, servoData, i, false);
         // encoderMenuUI();
         break;
 
@@ -129,7 +130,45 @@ const char *RunModeToString(RunMode runMode)
     }
 }
 
+RunMode NextMode(RunMode runMode)
+{
+    switch (runMode)
+    {
+    // MANUAL mode --------------------------------
+    case RUN_MANUAL_INIT:
+    case RUN_MANUAL:
+        return RUN_SWEEP_INIT;
+
+    // SWEEP mode ---------------------------------
+    case RUN_SWEEP_INIT:
+    case RUN_SWEEP_WAITING:
+    case RUN_SWEEP:
+#if USE_RCV
+        return RUN_RCHECK_INIT;
+#else
+        return RUN_MANUAL_INIT;
+#endif
+
+    // RECEIVER CHECK mode ----------------------
+    case RUN_RCHECK_INIT:
+    case RUN_RCHECK:
+    case RUN_RCHECK_PAUSE:
+#if USE_ESC
+        return RUN_ESC_INIT;
+#else
+        return RUN_MANUAL_INIT;
+#endif
+
+    // ESC mode ---------------------------------
+    case RUN_ESC_INIT:
+    case RUN_ESC:
+        return RUN_MANUAL_INIT;
+
+    default:
+        return RUN_MANUAL_INIT;
+    }
+}
+
 void handleManual(AppConfig &appConfig, ServoData *servoData)
 {
-
 }

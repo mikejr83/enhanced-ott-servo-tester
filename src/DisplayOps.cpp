@@ -8,15 +8,22 @@
 #ifndef SUPPRESS_SPLASH
 #include "SplashImageData.h"
 #endif
+#include "RunMode.h"
 
 void drawCenteredLineTextString(Adafruit_SSD1351 &oled, const char *buf, int x, int y);
-
 void drawCenteredScreenTextString(Adafruit_GFX &oled, const char *buf, int x, int y);
+void printModeTitle(Adafruit_SSD1351 &oled, const char *titleBuf);
+void printServoPositions(Adafruit_SSD1351 &oled, SystemData &data, ServoData *servoData);
+
+void ClearScreen(Adafruit_SSD1351 &oled)
+{
+    oled.fillScreen(BLACK);
+    delay(250);
+}
 
 void PrintSplashScreen(AppConfig &appConfig, Adafruit_SSD1351 &oled)
 {
-    oled.fillRect(0, 0, 128, 128, BLACK);
-    delay(250);
+    ClearScreen(oled);
 
     if (appConfig.data.showSplash && appConfig.data.splashDisplayTime <= MAX_SPLASH_DISPLAYTIME)
     {
@@ -46,14 +53,23 @@ void PrintTitleScreen(Adafruit_SSD1351 &oled)
     drawCenteredLineTextString(oled, "Tester", 0, 80);
 }
 
-void PrintMode(Adafruit_SSD1351 &oled, const char *modeBuf)
+void PrintMode(Adafruit_SSD1351 &oled, AppConfig &appConfig, RunMode runMode, ServoData *servoData)
 {
-    char buf[30];
-    String a(modeBuf);
-    strcpy(buf, "Mode: ");
-    strcat(buf, modeBuf);
+    // print the title first
+    printModeTitle(oled, RunModeToString(runMode));
 
-    drawCenteredLineTextString(oled, buf, 0, 0);
+    switch (runMode)
+    {
+    case RUN_MANUAL:
+    case RUN_MANUAL_INIT:
+
+        break;
+
+    default:
+        break;
+    }
+
+    printServoPositions(oled, appConfig.data, servoData);
 }
 
 void drawCenteredLineTextString(Adafruit_SSD1351 &oled, const char *buf, int x, int y)
@@ -72,4 +88,53 @@ void drawCenteredScreenTextString(Adafruit_SSD1351 &oled, const char *buf, int x
     oled.getTextBounds(buf, x, y, &x1, &y1, &w, &h); // calc width of new string
     oled.setCursor((SCREEN_WIDTH - w) / 2, (SCREEN_HEIGHT - h) / 2);
     oled.print(buf);
+}
+
+void printModeTitle(Adafruit_SSD1351 &oled, const char *titleBuf)
+{
+    oled.setTextColor(GREEN);
+    oled.setTextSize(2);
+
+    drawCenteredLineTextString(oled, titleBuf, 0, 0);
+}
+
+void printServoPositions(Adafruit_SSD1351 &oled, SystemData &data, ServoData *servoData)
+{
+    ServoData enabledServos[MAX_SERVO];
+    int totalEnabled = 0;
+    for (int i = 0; i < MAX_SERVO; i++)
+    {
+        if (data.servo[i].enabled)
+        {
+            enabledServos[totalEnabled++] = servoData[i];
+        }
+    }
+
+    double perRow = 2;
+    int rows = ceil(totalEnabled / perRow);
+    int baseOffset = (128 - rows * 9) - 3;
+
+    // oled.drawRect(0, baseOffset - 2, SCREEN_WIDTH, 128 - baseOffset, BLACK);
+    for (int i = 0; i < rows; i++)
+    {
+        String lineOfText = "";
+        for (int j = i * perRow; j < (i * perRow + perRow) && j < totalEnabled; j++)
+        {
+            lineOfText.append((char)(65 + j));
+            lineOfText.append(": ");
+            lineOfText.append(enabledServos[j].curV);
+            lineOfText.append("ms ");
+        }
+
+        PRINT("Line: ", lineOfText);
+
+        char buf[lineOfText.length()];
+        lineOfText.toCharArray(buf, lineOfText.length());
+
+        oled.setTextColor(WHITE, BLACK);
+        oled.setTextSize(1);
+
+        int y = baseOffset + i * 9;
+        drawCenteredLineTextString(oled, buf, 0, y);
+    }
 }

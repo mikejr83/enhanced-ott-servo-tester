@@ -92,22 +92,22 @@ MENU(profile1Menu, "Profile 1", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[0].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[0].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[0].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[0].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[0].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[0].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[0].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
 MENU(profile2Menu, "Profile 2", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[1].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[1].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[1].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[1].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[1].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[1].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[1].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
 MENU(profile3Menu, "Profile 3", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[2].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[2].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[2].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[2].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[2].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[2].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[2].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
 
 MENU(profilesMenu, "Profiles", doNothing, noEvent, wrapStyle,
@@ -327,7 +327,13 @@ void loop()
 #ifndef SUPPRESS_SPLASH
     // oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
 #endif
-    // HandleRunMode(appConfig, servoData, runMode);
+    HandleRunMode(appConfig, servoData, runMode);
+
+    if (millis() - lastCheck > 50)
+    {
+      lastCheck = millis();
+      PrintMode(oled, appConfig, runMode, servoData);
+    }
   }
 
   button.read();
@@ -336,6 +342,7 @@ void loop()
 void handleLongPress()
 {
   PRINTSLN("Long Press - Starting Menu...");
+  oled.fillRect(0, 0, 128, 128, BLACK);
   oled.setTextSize(1);
   nav.idleOff();
   showMenu = true;
@@ -349,6 +356,8 @@ void handleDoublePress()
   }
   else
   {
+    oled.fillScreen(BLACK);
+    runMode = NextMode(runMode);
     PRINTSLN("Handling Double Press...");
   }
 }
