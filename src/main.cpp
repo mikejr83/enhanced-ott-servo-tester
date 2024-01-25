@@ -1,5 +1,6 @@
 #include "Settings.h"
 
+#include <Servo.h>
 #include <SPI.h>
 
 #include <Adafruit_GFX.h>
@@ -14,11 +15,11 @@
 #include <menuIO/adafruitGfxOut.h>
 
 #include <EasyButton.h>
-// #include <ArduinoLog.h>
 
 #include "AppConfig.h"
-#include "SplashImageData.h"
-#include "TextPrinter.h"
+#include "Display.h"
+#include "ModeHandler.h"
+#include "ServoOps.h"
 #include "OTTMenu.h"
 
 // Button presses
@@ -30,12 +31,18 @@ void handleSave();
 void handleLoad();
 void handleReset();
 
-Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
-EasyButton button(BUTTON_PIN);
-AppConfig appConfig;
-
 volatile bool showMenu = false;
 
+Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
+EasyButton button(BUTTON_PIN);
+AppConfig appConfig(0);
+Servo servo[MAX_SERVO];
+ServoData servoData[MAX_SERVO];
+
+Display *display;
+ModeHandler *modeHandler;
+
+const uint8_t SERVO_PIN[MAX_SERVO] = {3, 4, 5, 6, 28, 29};
 uint32_t lastCheck = 0;
 
 using namespace Menu;
@@ -82,121 +89,121 @@ altMENU(confirmExit, exitMenu, "Exit?", doNothing, noEvent, wrapStyle,
         (Menu::_menuData | Menu::_canNav),
         OP("Yes", systemExit, enterEvent),
         EXIT("Cancel"));
-        
-MENU(profile1Menu, "Profile 1", doNothing, noEvent, noStyle,
+
+MENU(profile1Menu, "Profile 1", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[0].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[0].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[0].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[0].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[0].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[0].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[0].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
-MENU(profile2Menu, "Profile 2", doNothing, noEvent, noStyle,
+MENU(profile2Menu, "Profile 2", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[1].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[1].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[1].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[1].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[1].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[1].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[1].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
-MENU(profile3Menu, "Profile 3", doNothing, noEvent, noStyle,
+MENU(profile3Menu, "Profile 3", doNothing, noEvent, wrapStyle,
      FIELD(appConfig.data.profile[2].low, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[2].high, "Upper", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      FIELD(appConfig.data.profile[2].home, "Home", "%", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[2].sweepTime, "Sweep Time", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
-     FIELD(appConfig.data.profile[2].sweepPause, "Sweep Pause", "ms", 0, 100, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[2].sweepTime, "Sweep Time", "ms", 0, 10000, 100, 1, doNothing, noEvent, wrapStyle),
+     FIELD(appConfig.data.profile[2].sweepPause, "Sweep Pause", "ms", 0, 5000, 100, 1, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
 
-MENU(profilesMenu, "Profiles", doNothing, noEvent, noStyle,
+MENU(profilesMenu, "Profiles", doNothing, noEvent, wrapStyle,
      SUBMENU(profile1Menu),
      SUBMENU(profile2Menu),
      SUBMENU(profile3Menu),
      EXIT("<Back"));
 
-TOGGLE(appConfig.data.servo[0].enabled, servo0EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[0].enabled, servo0EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[0].profileId, servo0ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[0].profileId, servo0ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[1].enabled, servo1EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[1].enabled, servo1EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[1].profileId, servo1ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[1].profileId, servo1ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[2].enabled, servo2EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[2].enabled, servo2EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[2].profileId, servo2ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[2].profileId, servo2ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[3].enabled, servo3EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[3].enabled, servo3EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[3].profileId, servo3ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[3].profileId, servo3ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[4].enabled, servo4EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[4].enabled, servo4EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[4].profileId, servo4ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[4].profileId, servo4ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[5].enabled, servo5EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[5].enabled, servo5EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[5].profileId, servo5ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[5].profileId, servo5ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-TOGGLE(appConfig.data.servo[6].enabled, servo6EnabledToggle, "Enabled? ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[6].enabled, servo6EnabledToggle, "Enabled? ", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
-TOGGLE(appConfig.data.servo[6].profileId, servo6ProfileToggle, "Profile: ", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.servo[6].profileId, servo6ProfileToggle, "Profile: ", doNothing, noEvent, wrapStyle,
        VALUE("Profile 1", 0, doNothing, noEvent),
        VALUE("Profile 2", 1, doNothing, noEvent),
        VALUE("Profile 3", 2, doNothing, noEvent));
 
-MENU(servo0, "Servo A", doNothing, noEvent, noStyle,
+MENU(servo0, "Servo A", doNothing, noEvent, wrapStyle,
      SUBMENU(servo0EnabledToggle),
      SUBMENU(servo0ProfileToggle),
      EXIT("< Back"));
-MENU(servo1, "Servo B", doNothing, noEvent, noStyle,
+MENU(servo1, "Servo B", doNothing, noEvent, wrapStyle,
      SUBMENU(servo1EnabledToggle),
      SUBMENU(servo1ProfileToggle),
      EXIT("< Back"));
-MENU(servo2, "Servo C", doNothing, noEvent, noStyle,
+MENU(servo2, "Servo C", doNothing, noEvent, wrapStyle,
      SUBMENU(servo2EnabledToggle),
      SUBMENU(servo2ProfileToggle),
      EXIT("< Back"));
-MENU(servo3, "Servo D", doNothing, noEvent, noStyle,
+MENU(servo3, "Servo D", doNothing, noEvent, wrapStyle,
      SUBMENU(servo3EnabledToggle),
      SUBMENU(servo3ProfileToggle),
      EXIT("< Back"));
-MENU(servo4, "Servo E", doNothing, noEvent, noStyle,
+MENU(servo4, "Servo E", doNothing, noEvent, wrapStyle,
      SUBMENU(servo4EnabledToggle),
      SUBMENU(servo4ProfileToggle),
      EXIT("< Back"));
-MENU(servo5, "Servo F", doNothing, noEvent, noStyle,
+MENU(servo5, "Servo F", doNothing, noEvent, wrapStyle,
      SUBMENU(servo5EnabledToggle),
      SUBMENU(servo5ProfileToggle),
      EXIT("< Back"));
-MENU(servo6, "Servo G", doNothing, noEvent, noStyle,
+MENU(servo6, "Servo G", doNothing, noEvent, wrapStyle,
      SUBMENU(servo6EnabledToggle),
      SUBMENU(servo6ProfileToggle),
      EXIT("< Back"));
 
-MENU(servos, "Servos", doNothing, noEvent, noStyle,
+MENU(servos, "Servos", doNothing, noEvent, wrapStyle,
      SUBMENU(servo0),
      SUBMENU(servo1),
      SUBMENU(servo2),
@@ -211,11 +218,11 @@ MENU(signalLimitsMenu, "Signal Limits", doNothing, noEvent, noStyle,
      FIELD(appConfig.data.limLow, "Lower", "ms", SERVO_LOWER_HARDLIMIT, SERVO_UPPER_HARDLIMIT, 100, 1, handleGlobalServoLimits, exitEvent, wrapStyle),
      EXIT("< Back"));
 
-TOGGLE(appConfig.data.showSplash, toggleShowSplash, "Show Splash Screen", doNothing, noEvent, noStyle,
+TOGGLE(appConfig.data.showSplash, toggleShowSplash, "Show Splash Screen", doNothing, noEvent, wrapStyle,
        VALUE("Yes", true, doNothing, noEvent),
        VALUE("No", false, doNothing, noEvent));
 
-MENU(generalConfigMenu, "General Configuration", doNothing, noEvent, noStyle,
+MENU(generalConfigMenu, "General Configuration", doNothing, noEvent, wrapStyle,
      SUBMENU(toggleShowSplash),
      FIELD(appConfig.data.splashDisplayTime, "Splash Screen Display Length", "ms", 1000, MAX_SPLASH_DISPLAYTIME, 1000, 100, doNothing, noEvent, wrapStyle),
      EXIT("< Back"));
@@ -225,9 +232,11 @@ MENU(configMenu, "Configuration", doNothing, noEvent, noStyle,
      SUBMENU(servos),
      SUBMENU(signalLimitsMenu),
      SUBMENU(generalConfigMenu),
+#ifdef USE_EEPROM
      OP("Save", handleSave, enterEvent),
      OP("Load", handleLoad, enterEvent),
      OP("Reset", handleReset, enterEvent),
+#endif
      EXIT("< Back"));
 
 MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
@@ -256,7 +265,7 @@ NAVROOT(nav, mainMenu, MAX_DEPTH, in, out);
 result idle(menuOut &o, idleEvent e)
 {
   showMenu = false;
-  Serial.println("Idling");
+  PRINTSLN("Idling");
   return proceed;
 }
 
@@ -281,6 +290,7 @@ void setup(void)
 
   // Initialize the OLED
   oled.begin();
+  oled.setRotation(DISPLAY_ROTATION);
 
   // Initialize nav
   nav.idleTask = idle;
@@ -288,52 +298,50 @@ void setup(void)
   // Initialize application configuration
   appConfig.begin();
 
-  PRINTSLN("Initialization complete!")
+  // Initialize all objects and libraries
+  for (uint8_t i = 0; i < MAX_SERVO; i++)
+  {
+    servo[i].attach(SERVO_PIN[i]);
 
-  // You can optionally rotate the display by running the line below.
-  // Note that a value of 0 means no rotation, 1 means 90 clockwise,
-  // 2 means 180 degrees clockwise, and 3 means 270 degrees clockwise.
-  // oled.setRotation(1);
-  // NOTE: The test pattern at the start will NOT be rotated!  The code
-  // for rendering the test pattern talks directly to the display and
-  // ignores any rotation.
+    // set the current value and setpoints
+    servoData[i].curV = 0;
+  }
+
+  modeHandler = new ModeHandler(appConfig, servoData);
+  SetAllServoHome(appConfig, servoData);
+
+  PRINTSLN("Initialization complete!");
 
   oled.fillRect(0, 0, 128, 128, BLACK);
   delay(250);
 
-  if (appConfig.data.showSplash && appConfig.data.splashDisplayTime <= MAX_SPLASH_DISPLAYTIME)
-  {
-    PRINT("\nShowing splash screen and title for a total time of: ", appConfig.data.splashDisplayTime)
-    oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
-    delay(appConfig.data.splashDisplayTime / 2);
-    oled.fillScreen(BLACK);
-    pintTitleScreen(oled);
-    delay(appConfig.data.splashDisplayTime / 2);
-    oled.fillScreen(BLACK);
-  }
+  display = new Display(oled, appConfig, servoData);
+
+  display->PrintSplashScreen();
 }
 
 void loop()
 {
+  CheckMovement(servoData, servo);
+
   if (showMenu)
   {
     nav.poll();
   }
   else
   {
-    oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
+#ifndef SUPPRESS_SPLASH
+    // oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
+#endif
+    modeHandler->HandleCurrentMode();
+
+    if (millis() - lastCheck > 500)
+    {
+      // HandleRunMode(appConfig, servoData, runMode);
+      lastCheck = millis();
+      display->PrintMode(modeHandler->GetCurrentRunMode());
+    }
   }
-
-  // if(millis() - lastCheck > 5000){
-  //   lastCheck = millis();
-  //   int xAxisRead = analogRead(X_AXIS_PIN);
-  //   int yAxisRead = analogRead(Y_AXIS_PIN);
-
-  //   Serial.print("X: ");
-  //   Serial.println(xAxisRead);
-  //   Serial.print("Y: ");
-  //   Serial.println(yAxisRead);
-  // }
 
   button.read();
 }
@@ -341,6 +349,8 @@ void loop()
 void handleLongPress()
 {
   PRINTSLN("Long Press - Starting Menu...");
+  oled.fillRect(0, 0, 128, 128, BLACK);
+  oled.setTextSize(1);
   nav.idleOff();
   showMenu = true;
 }
@@ -353,6 +363,8 @@ void handleDoublePress()
   }
   else
   {
+    oled.fillScreen(BLACK);
+    modeHandler->NextRunMode();
     PRINTSLN("Handling Double Press...");
   }
 }

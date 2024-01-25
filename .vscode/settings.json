@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.cps": "javascript",
+        "*.m1s": "vb",
+        "*.h": "cpp",
+        "mstd_functional": "cpp",
+        "mstd_tuple": "cpp",
+        "mstd_type_traits": "cpp"
+    }
+}
