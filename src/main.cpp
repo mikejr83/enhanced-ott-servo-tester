@@ -25,6 +25,7 @@
 // Button presses
 void handleLongPress();
 void handleDoublePress();
+void hanldeSinglePress();
 // Menu handlers
 void handleGlobalServoLimits();
 void handleSave();
@@ -285,8 +286,9 @@ void setup(void)
   // Initialize the button.
   button.begin();
 
-  button.onPressedFor(3000, handleLongPress);
-  button.onSequence(2, 1500, handleDoublePress);
+  button.onPressedFor(LONG_PRESS_MS, handleLongPress);
+  button.onSequence(2, DOUBLE_PRESS_THRESHOLD, handleDoublePress);
+  button.onPressed(hanldeSinglePress);
 
   // Initialize the OLED
   oled.begin();
@@ -339,7 +341,7 @@ void loop()
     {
       // HandleRunMode(appConfig, servoData, runMode);
       lastCheck = millis();
-      display->PrintMode(modeHandler->GetCurrentRunMode());
+      display->PrintMode(modeHandler->GetCurrentRunMode(), modeHandler->GetCurrentManualMode());
     }
   }
 
@@ -366,6 +368,14 @@ void handleDoublePress()
     oled.fillScreen(BLACK);
     modeHandler->NextRunMode();
     PRINTSLN("Handling Double Press...");
+  }
+}
+
+void hanldeSinglePress()
+{
+  if (!showMenu && modeHandler->GetCurrentRunMode() == RunMode::RUN_MANUAL)
+  {
+    modeHandler->NextManualMode();
   }
 }
 

@@ -2,15 +2,33 @@
 
 // typedef drawCenteredLineTextString =
 
-void Display::PrintMode(RunMode runMode)
+void Display::PrintMode(RunMode runMode, ManualModeSubMode manualSubMode)
 {
+    bool updatedRunMode = false;
     // print the title first
-    printModeTitle(ModeHandler::RunModeToString(runMode));
+    if (runMode != lastRunMode)
+    {
+        updatedRunMode = true;
+        printModeTitle(ModeHandler::RunModeToString(runMode));
+        lastRunMode = runMode;
+    }
 
     switch (runMode)
     {
     case RUN_MANUAL:
     case RUN_MANUAL_INIT:
+        // print manual mode's sub mode
+        oled.setTextColor(GREEN, BLACK);
+        oled.setTextSize(1);
+
+        if (manualSubMode != lastManualSubMode || updatedRunMode)
+        {
+            oled.fillRect(0, 20, SCREEN_WIDTH, 10, BLACK);
+
+            Display::DrawCenteredLineTextString(oled, ModeHandler::ManualSubModeToString(manualSubMode), 0, 20);
+
+            lastManualSubMode = manualSubMode;
+        }
 
         break;
 
@@ -23,7 +41,7 @@ void Display::PrintMode(RunMode runMode)
 
 void Display::printModeTitle(const char *titleBuf)
 {
-    oled.setTextColor(GREEN);
+    oled.setTextColor(GREEN, BLACK);
     oled.setTextSize(2);
 
     Display::DrawCenteredLineTextString(oled, titleBuf, 0, 0);

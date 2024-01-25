@@ -9,6 +9,8 @@
 class Display
 {
 private:
+    RunMode lastRunMode = RunMode::RUN_MANUAL_INIT;
+    ManualModeSubMode lastManualSubMode = ManualModeSubMode::HOLD_POSITION;
     void printModeTitle(const char *titleBuf);
     void printServoPositions();
 
@@ -27,5 +29,5 @@ public:
     void PrintSplashScreen();
     void PrintTitleScreen();
 
-    void PrintMode(RunMode runMode);
+    void PrintMode(RunMode runMode, ManualModeSubMode manualSubMode);
 };

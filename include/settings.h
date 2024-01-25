@@ -59,12 +59,15 @@ and
 #define YELLOW 0xFFE0
 #define WHITE 0xFFFF
 
+// END OF HARDWARE CONFIG
+// BEGIN OF RUNTIME CONFIG
+
 // UI Defaults
 #define MAX_SPLASH_DISPLAYTIME 5000
 #define SHOW_SPLASH  true
 
-// END OF HARDWARE CONFIG
-// BEGIN OF RUNTIME CONFIG
+#define LONG_PRESS_MS 3000
+#define DOUBLE_PRESS_THRESHOLD 1000
 
 // Applies an expo curve similar to an RC transmitter
 #define JOY_EXPO .4

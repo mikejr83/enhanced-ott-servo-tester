@@ -21,3 +21,4 @@ void SetAllServoHome(AppConfig &appConfig, ServoData *servoData);
 
 void DoServoSweep(AppConfig &appConfig, ServoData *servoData, uint8_t s, bool restart);
 void DoManualUpdate(AppConfig &appConfig, ServoData *servoData, short moveOffset);
+void DoManualUpdateToPercentage(AppConfig &appConfig, ServoData *servoData, double percentage);

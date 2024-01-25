@@ -177,3 +177,36 @@ void DoManualUpdate(AppConfig &appConfig, ServoData *servoData, short moveOffset
         }
     }
 }
+
+void DoManualUpdateToPercentage(AppConfig &appConfig, ServoData *servoData, double percentage)
+{
+    for (int i = 0; i < MAX_SERVO; i++)
+    {
+        ServoInfo servoConfig = appConfig.data.servo[i];
+
+        if (servoConfig.enabled)
+        {
+            ProfileInfo profileInfo = appConfig.data.profile[servoConfig.profileId];
+            
+            double movingTo = map(percentage, -1.00, 1.00, profileInfo.low, profileInfo.high);
+            // PRINT("Percentage: ", percentage);
+            // PRINT("Current setV: ", servoData[i].setV)
+            // PRINT("Moving to: ", movingTo);
+            // PRINT("Profile high: ", profileInfo.high);
+            // PRINT("Profile low: ", profileInfo.low);
+
+            if (profileInfo.high < movingTo)
+            {
+                PRINT("Too high! Ackually moving: " , movingTo);
+                movingTo = profileInfo.high;
+            }
+            else if (profileInfo.low > movingTo)
+            {
+                PRINT("Too low! Ackually moving: " , movingTo);
+                movingTo = profileInfo.low;
+            }
+
+            servoData[i].setV = movingTo;
+        }
+    }
+}

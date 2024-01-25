@@ -46,7 +46,32 @@ RunMode ModeHandler::NextRunMode()
     return currentMode;
 }
 
+ManualModeSubMode ModeHandler::NextManualMode()
+{
+    switch (currentManualSubMode)
+    {
+    case ManualModeSubMode::HOLD_POSITION:
+        currentManualSubMode = ManualModeSubMode::JOYSTICK_INPUT;
+        break;
+
+    case ManualModeSubMode::JOYSTICK_INPUT:
+        currentManualSubMode = ManualModeSubMode::HOME;
+        break;
+
+    case ManualModeSubMode::HOME:
+        currentManualSubMode = ManualModeSubMode::HOLD_POSITION;
+        break;
+    }
+
+    return currentManualSubMode;
+}
+
 RunMode ModeHandler::GetCurrentRunMode()
 {
     return currentMode;
+}
+
+ManualModeSubMode ModeHandler::GetCurrentManualMode()
+{
+    return currentManualSubMode;
 }

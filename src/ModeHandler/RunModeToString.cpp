@@ -30,3 +30,20 @@ const char *ModeHandler::RunModeToString(RunMode runMode)
         return "Manual";
     }
 }
+
+const char *ModeHandler::ManualSubModeToString(ManualModeSubMode runMode)
+{
+    switch (runMode)
+    {
+    case ManualModeSubMode::HOLD_POSITION:
+        return "Hold At Position";
+
+    case ManualModeSubMode::HOME:
+        return "Home";
+
+    case ManualModeSubMode::JOYSTICK_INPUT:
+        return "Joystick";
+    default:
+        return "Hold At Position";
+    }
+}

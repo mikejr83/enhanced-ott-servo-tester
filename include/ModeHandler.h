@@ -19,12 +19,20 @@ enum RunMode : uint8_t
     RUN_ESC
 };
 
+enum ManualModeSubMode : uint8_t
+{
+    HOLD_POSITION,
+    JOYSTICK_INPUT,
+    HOME
+};
+
 class ModeHandler
 {
 private:
     AppConfig appConfig;
     ServoData *servoData;
     RunMode currentMode = RUN_MANUAL_INIT;
+    ManualModeSubMode currentManualSubMode = HOLD_POSITION;
 
     uint32_t lastJoyRead = 0;
 
@@ -32,10 +40,15 @@ private:
 
 public:
     static const char *RunModeToString(RunMode runMode);
+    static const char *ManualSubModeToString(ManualModeSubMode runMode);
 
     ModeHandler(AppConfig &appConfig, ServoData *servoData);
 
     void HandleCurrentMode();
+    
     RunMode NextRunMode();
+    ManualModeSubMode NextManualMode();
+
     RunMode GetCurrentRunMode();
+    ManualModeSubMode GetCurrentManualMode();
 };
