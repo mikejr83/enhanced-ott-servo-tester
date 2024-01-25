@@ -14,6 +14,7 @@ void CheckMovement(ServoData *servoData, Servo *servo)
     {
         if (servoData[i].curV != servoData[i].setV)
         {
+            PRINTSLN("DO IT");
             servo[i].writeMicroseconds(servoData[i].setV);
             servoData[i].curV = servoData[i].setV;
         }
@@ -138,5 +139,42 @@ void DoServoSweep(AppConfig &appConfig, ServoData *servoData, uint8_t s, bool re
             servoData[s].timeStart = millis();
         }
         break;
+    }
+}
+
+void DoManualUpdate(AppConfig &appConfig, ServoData *servoData, short moveOffset)
+{
+    if (moveOffset == 0)
+    {
+        return;
+    }
+
+    for (int i = 0; i < MAX_SERVO; i++)
+    {
+        ServoInfo servoConfig = appConfig.data.servo[i];
+
+        if (servoConfig.enabled)
+        {
+            ProfileInfo profileInfo = appConfig.data.profile[servoConfig.profileId];
+            uint16_t movingTo = servoData[i].setV + moveOffset;
+            // PRINT("Move offset: ", moveOffset);
+            // PRINT("Current setV: ", servoData[i].setV)
+            // PRINT("Moving to: ", movingTo);
+            // PRINT("Profile high: ", profileInfo.high);
+            // PRINT("Profile low: ", profileInfo.low);
+
+            if (profileInfo.high < movingTo)
+            {
+                PRINT("Too high! Ackually moving: " , movingTo);
+                movingTo = profileInfo.high;
+            }
+            else if (profileInfo.low > movingTo)
+            {
+                PRINT("Too low! Ackually moving: " , movingTo);
+                movingTo = profileInfo.low;
+            }
+
+            servoData[i].setV = movingTo;
+        }
     }
 }

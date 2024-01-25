@@ -171,4 +171,21 @@ RunMode NextMode(RunMode runMode)
 
 void handleManual(AppConfig &appConfig, ServoData *servoData)
 {
+    int deadband = 10;
+    double expo = .3;
+    int xVal = analogRead(X_AXIS_PIN);
+    int yVal = analogRead(Y_AXIS_PIN);
+
+    xVal = abs(xVal - 511) < deadband ? 511 : xVal;
+    yVal = abs(yVal - 511) < deadband ? 511 : yVal;
+
+    double xPercentage = (double)map(xVal, 0, 1023, -100, 100) / (double)100;
+    double yPercentage = (double)map(yVal, 0, 1023, -100, 100) / (double)100;
+
+    xPercentage = expo * pow(xPercentage, 3) + (1 - expo) * xPercentage;
+    yPercentage = expo * pow(yPercentage, 3) + (1 - expo) * yPercentage;
+
+    int moveBy = abs(xPercentage) > abs(yPercentage) ? (50 * xPercentage) : (50 * yPercentage);
+
+    DoManualUpdate(appConfig, servoData, moveBy);
 }

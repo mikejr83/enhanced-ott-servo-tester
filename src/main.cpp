@@ -333,8 +333,9 @@ void loop()
 #endif
     HandleRunMode(appConfig, servoData, runMode);
 
-    if (millis() - lastCheck > 50)
+    if (millis() - lastCheck > 500)
     {
+      // HandleRunMode(appConfig, servoData, runMode);
       lastCheck = millis();
       display->PrintMode(runMode);
     }

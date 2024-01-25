@@ -62,7 +62,7 @@ void Display::printServoPositions()
             lineOfText.append(F("ms "));
         }
 
-        PRINT("Line: ", lineOfText);
+        // PRINT("Line: ", lineOfText);
 
         char buf[lineOfText.length()];
         lineOfText.toCharArray(buf, lineOfText.length());
