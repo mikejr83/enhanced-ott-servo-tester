@@ -337,7 +337,7 @@ void loop()
 #endif
     modeHandler->HandleCurrentMode();
 
-    if (millis() - lastCheck > 500)
+    if (millis() - lastCheck > 1000 / SCREEN_REFRESH_RATE)
     {
       // HandleRunMode(appConfig, servoData, runMode);
       lastCheck = millis();

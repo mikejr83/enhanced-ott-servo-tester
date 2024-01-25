@@ -65,6 +65,7 @@ and
 // UI Defaults
 #define MAX_SPLASH_DISPLAYTIME 5000
 #define SHOW_SPLASH  true
+#define SCREEN_REFRESH_RATE 24 //Hz
 
 #define LONG_PRESS_MS 3000
 #define DOUBLE_PRESS_THRESHOLD 1000

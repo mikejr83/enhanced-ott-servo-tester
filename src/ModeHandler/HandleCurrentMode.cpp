@@ -135,23 +135,19 @@ void ModeHandler::handleManual()
         break;
 
     case ManualModeSubMode::JOYSTICK_INPUT:
-        if (millis() - lastJoyRead > 250)
-        {
-            lastJoyRead = millis();
-            int xVal = analogRead(X_AXIS_PIN);
-            int yVal = analogRead(Y_AXIS_PIN);
+        int xVal = analogRead(X_AXIS_PIN);
+        int yVal = analogRead(Y_AXIS_PIN);
 
-            xVal = abs(xVal - 511) < X_AXIS_DEADBAND ? 511 : xVal;
-            yVal = abs(yVal - 511) < Y_AXIS_DEADBAND ? 511 : yVal;
+        xVal = abs(xVal - 511) < X_AXIS_DEADBAND ? 511 : xVal;
+        yVal = abs(yVal - 511) < Y_AXIS_DEADBAND ? 511 : yVal;
 
-            double xPercentage = (double)map(xVal, 0, 1023, -100, 100) / (double)100;
-            double yPercentage = (double)map(yVal, 0, 1023, -100, 100) / (double)100;
+        double xPercentage = (double)map(xVal, 0, 1023, -100, 100) / (double)100;
+        double yPercentage = (double)map(yVal, 0, 1023, -100, 100) / (double)100;
 
-            xPercentage = JOY_EXPO * pow(xPercentage, 3) + (1 - JOY_EXPO) * xPercentage;
-            yPercentage = JOY_EXPO * pow(yPercentage, 3) + (1 - JOY_EXPO) * yPercentage;
+        xPercentage = JOY_EXPO * pow(xPercentage, 3) + (1 - JOY_EXPO) * xPercentage;
+        yPercentage = JOY_EXPO * pow(yPercentage, 3) + (1 - JOY_EXPO) * yPercentage;
 
-            DoManualUpdateToPercentage(appConfig, servoData, abs(xPercentage) > abs(yPercentage) ? xPercentage : yPercentage);
-        }
+        DoManualUpdateToPercentage(appConfig, servoData, abs(xPercentage) > abs(yPercentage) ? xPercentage : yPercentage);
         break;
     }
 }
