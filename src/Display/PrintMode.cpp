@@ -5,7 +5,7 @@
 void Display::PrintMode(RunMode runMode)
 {
     // print the title first
-    printModeTitle(RunModeToString(runMode));
+    printModeTitle(ModeHandler::RunModeToString(runMode));
 
     switch (runMode)
     {

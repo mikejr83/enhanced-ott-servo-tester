@@ -18,7 +18,7 @@
 
 #include "AppConfig.h"
 #include "Display.h"
-#include "RunMode.h"
+#include "ModeHandler.h"
 #include "ServoOps.h"
 #include "OTTMenu.h"
 
@@ -40,9 +40,9 @@ Servo servo[MAX_SERVO];
 ServoData servoData[MAX_SERVO];
 
 Display *display;
+ModeHandler *modeHandler;
 
 const uint8_t SERVO_PIN[MAX_SERVO] = {3, 4, 5, 6, 28, 29};
-RunMode runMode = RUN_MANUAL_INIT;
 uint32_t lastCheck = 0;
 
 using namespace Menu;
@@ -306,6 +306,8 @@ void setup(void)
     // set the current value and setpoints
     servoData[i].curV = 0;
   }
+
+  modeHandler = new ModeHandler(appConfig, servoData);
   SetAllServoHome(appConfig, servoData);
 
   PRINTSLN("Initialization complete!");
@@ -331,13 +333,13 @@ void loop()
 #ifndef SUPPRESS_SPLASH
     // oled.drawRGBBitmap(0, 0, (const uint16_t *)logoSplash.pixel_data, 128, 128);
 #endif
-    HandleRunMode(appConfig, servoData, runMode);
+    modeHandler->HandleCurrentMode();
 
     if (millis() - lastCheck > 500)
     {
       // HandleRunMode(appConfig, servoData, runMode);
       lastCheck = millis();
-      display->PrintMode(runMode);
+      display->PrintMode(modeHandler->GetCurrentRunMode());
     }
   }
 
@@ -362,7 +364,7 @@ void handleDoublePress()
   else
   {
     oled.fillScreen(BLACK);
-    runMode = NextMode(runMode);
+    modeHandler->NextRunMode();
     PRINTSLN("Handling Double Press...");
   }
 }

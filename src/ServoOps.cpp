@@ -14,7 +14,6 @@ void CheckMovement(ServoData *servoData, Servo *servo)
     {
         if (servoData[i].curV != servoData[i].setV)
         {
-            PRINTSLN("DO IT");
             servo[i].writeMicroseconds(servoData[i].setV);
             servoData[i].curV = servoData[i].setV;
         }

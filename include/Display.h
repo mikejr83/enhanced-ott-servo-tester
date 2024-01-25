@@ -4,7 +4,7 @@
 #include <Adafruit_SSD1351.h>
 
 #include "AppConfig.h"
-#include "RunMode.h"
+#include "ModeHandler.h"
 
 class Display
 {
